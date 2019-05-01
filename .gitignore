@@ -9,3 +9,4 @@ out/
 
 #Rooibos generated
 rooibosFunctionMap.brs
+source/buildinfo.brs

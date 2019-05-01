@@ -20,11 +20,13 @@ ZIP_EXCLUDE= -x xml/* -x artwork/* -x \*.pkg -x storeassets\* -x keys\* -x \*/.\
 
 include app.mk
 
-test: remove install
+preprocess: 
+	rooibosC -c .rooibosrc.json
+
+test: preprocess remove install
 	echo "Running tests"
 	curl -d '' "http://${ROKU_DEV_TARGET}:8060/keypress/home" 
 	curl -d '' "http://${ROKU_DEV_TARGET}:8060/launch/dev?RunTests=true&logLevel=4"
-	sleep 10 | telnet ${ROKU_DEV_TARGET} 8085
 
 testFailures: remove install
 	echo "Running tests - only showing failures"
