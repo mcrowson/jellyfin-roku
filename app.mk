@@ -31,6 +31,7 @@ COMMONREL ?= ./common
 SOURCEREL = .
 
 ZIPREL = $(DISTREL)/apps
+STAGINGREL = $(DISTREL)/staging
 PKGREL = $(DISTREL)/packages
 
 APPSOURCEDIR = source
@@ -58,16 +59,13 @@ else
 	CURLCMD = curl -S --connect-timeout 2 --max-time 30 --retry 5 --user $(USERPASS) --digest 
 endif
 
-.PHONY: all $(APPNAME) verify-keys home
-
 home:
 	@echo "Forcing roku to main menu screen $(ROKU_DEV_TARGET)..."
 	curl -s -S -d '' http://$(ROKU_DEV_TARGET):8060/keypress/home
 	sleep 2
 
-$(APPNAME): manifest
-	@echo "*** Creating $(APPNAME).zip ***"
-
+prep_staging:
+	@echo "*** Preparing Staging Area ***"
 	@echo "  >> removing old application zip $(ZIPREL)/$(APPNAME).zip"
 	@if [ -e "$(ZIPREL)/$(APPNAME).zip" ]; \
 	then \
@@ -86,6 +84,24 @@ $(APPNAME): manifest
 		chmod 755 $(ZIPREL); \
 	fi
 
+	@echo "  >> creating destination directory $(STAGINGREL)"	
+	@if [ -d $(STAGINGREL) ]; \
+	then \
+		find $(STAGINGREL) -delete; \
+	fi; \
+	mkdir -p $(STAGINGREL); \
+	chmod -R 755 $(STAGINGREL); \
+	mkdir -p $(STAGINGREL)/source; \
+	mkdir -p $(STAGINGREL)/components; \
+	
+
+	@echo "  >> moving application to $(STAGINGREL)"
+	@cp -r $(SOURCEREL)/source/* $(STAGINGREL)/source 
+	@cp -r $(SOURCEREL)/components/* $(STAGINGREL)/components
+	@cp $(SOURCEREL)/manifest $(STAGINGREL)/manifest
+
+package:
+	@echo "*** Creating $(APPNAME).zip ***"
 	@echo "  >> copying imports"
 	@if [ "$(IMPORTFILES)" ]; \
 	then \
@@ -94,26 +110,29 @@ $(APPNAME): manifest
 	fi \
 
 	@echo "  >> generating build info file"
-	@if [ -e "$(APPSOURCEDIR)/buildinfo.brs" ]; \
+	@if [ -e "$(STAGINGREL)/$(APPSOURCEDIR)/buildinfo.brs" ]; \
 	then \
-		rm  $(APPSOURCEDIR)/buildinfo.brs; \
+		rm  $(STAGINGREL)/$(APPSOURCEDIR)/buildinfo.brs; \
 	fi
-	echo "Function BuildDate()" >> $(APPSOURCEDIR)/buildinfo.brs
-	echo "  return \"${BUILDDATE}\"" >> $(APPSOURCEDIR)/buildinfo.brs
-	echo "End Function" >> $(APPSOURCEDIR)/buildinfo.brs
-	echo "Function BuildCommit()" >> $(APPSOURCEDIR)/buildinfo.brs
-	echo "  return \"${GITCOMMIT}\"" >> $(APPSOURCEDIR)/buildinfo.brs
-	echo "End Function" >> $(APPSOURCEDIR)/buildinfo.brs
+	echo "  >> generating build info file";\
+	echo "Function BuildDate()" >> $(STAGINGREL)/$(APPSOURCEDIR)/buildinfo.brs 
+	echo "  return \"${BUILDDATE}\"" >> $(STAGINGREL)/$(APPSOURCEDIR)/buildinfo.brs
+	echo "End Function" >> $(STAGINGREL)/$(APPSOURCEDIR)/buildinfo.brs
+	echo "Function BuildCommit()" >> $(STAGINGREL)/$(APPSOURCEDIR)/buildinfo.brs
+	echo "  return \"${GITCOMMIT}\"" >> $(STAGINGREL)/$(APPSOURCEDIR)/buildinfo.brs
+	echo "End Function" >> $(STAGINGREL)/$(APPSOURCEDIR)/buildinfo.brs
 
-# zip .png files without compression
-# do not zip up Makefiles, or any files ending with '~'
-	@echo "  >> creating application zip $(ZIPREL)/$(APPNAME).zip"	
-	@if [ -d $(SOURCEREL) ]; \
+	# zip .png files without compression
+	# do not zip up any files ending with '~'
+	@echo "  >> creating application zip $(STAGINGREL)/../apps/$(APPNAME).zip"	
+	@if [ -d $(STAGINGREL) ]; \
 	then \
-		(zip -0 -r "$(ZIPREL)/$(APPNAME).zip" . -i \*.png $(ZIP_EXCLUDE)); \
-		(zip -9 -r "$(ZIPREL)/$(APPNAME).zip" . -x \*~ -x \*.png -x Makefile $(ZIP_EXCLUDE)); \
+		cd $(STAGINGREL); \
+		(zip -0 -r "../apps/$(APPNAME).zip" . -i \*.png $(ZIP_EXCLUDE)); \
+		(zip -9 -r "../apps/$(APPNAME).zip" . -x \*~ -x \*.png $(ZIP_EXCLUDE)); \
+		cd $(SOURCEREL);\
 	else \
-		echo "Source for $(APPNAME) not found at $(SOURCEREL)"; \
+		echo "Source for $(APPNAME) not found at $(STAGINGREL)"; \
 	fi
 
 	@if [ "$(IMPORTCLEANUP)" ]; \
@@ -124,8 +143,12 @@ $(APPNAME): manifest
 
 	@echo "*** packaging $(APPNAME) complete ***"
 
-
-install: $(APPNAME) home
+prep_tests:
+	@cp -r $(SOURCEREL)/rooibos/components_tests/* $(STAGINGREL)/components/
+	@cp -r $(SOURCEREL)/rooibos/source_tests/* $(STAGINGREL)/source/
+	rooibosC -c rooibos/.rooibosrc.json
+	
+install: package home
 	@echo "Installing $(APPNAME) to host $(ROKU_DEV_TARGET)"
 	@$(CURLCMD) --user $(USERPASS) --digest -F "mysubmit=Install" -F "archive=@$(ZIPREL)/$(APPNAME).zip" -F "passwd=" http://$(ROKU_DEV_TARGET)/plugin_install | grep "<font color" | sed "s/<font color=\"red\">//" | sed "s[</font>[["
 

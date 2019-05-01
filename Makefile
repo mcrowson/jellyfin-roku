@@ -12,24 +12,15 @@
 ##########################################################################
 
 APPNAME = Jellyfin_Roku
-VERSION = 0.0.
+VERSION = 0.0.1
 ROKU_TEST_ID = 1
 ROKU_TEST_WAIT_DURATION = 5
 
-ZIP_EXCLUDE= -x xml/* -x artwork/* -x \*.pkg -x storeassets\* -x keys\* -x \*/.\* -x *.git* -x *.DS* -x *.pkg* -x dist/**\*  -x out/**\* -x node_modules/**\* -x node_modules 
+ZIP_EXCLUDE= -x rooibos/**\* -x xml/* -x artwork/* -x \*.pkg -x storeassets\* -x keys\* -x \*/.\* -x *.git* -x *.DS* -x *.pkg* -x dist/**\*  -x out/**\* 
 
 include app.mk
 
-preprocess: 
-	rooibosC -c .rooibosrc.json
-
-test: preprocess remove install
+test: prep_staging prep_tests remove install
 	echo "Running tests"
-	curl -d '' "http://${ROKU_DEV_TARGET}:8060/keypress/home" 
-	curl -d '' "http://${ROKU_DEV_TARGET}:8060/launch/dev?RunTests=true&logLevel=4"
 
-testFailures: remove install
-	echo "Running tests - only showing failures"
-	curl -d '' "http://${ROKU_DEV_TARGET}:8060/keypress/home" 
-	curl -d '' "http://${ROKU_DEV_TARGET}:8060/launch/dev?RunTests=true&showOnlyFailures=true&logLevel=4"
-	sleep 10 | telnet ${ROKU_DEV_TARGET} 8085
+deploy: prep_staging remove install

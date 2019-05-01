@@ -1,6 +1,6 @@
 {
-	"logLevel": 1,
-	"testsDirectory": "pkg:/source/tests/specs",
+	"logLevel": 4,
+	"testsDirectory": "pkg:source/tests/specs",
 	"failFast": false,
 	"showOnlyFailures": false,
 	"maxLinesWithoutSuiteDirective": 30,

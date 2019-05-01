@@ -2195,7 +2195,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
 end sub
 sub RBS_TR_SendHomeKeypress()
   ut = CreateObject("roUrlTransfer")
-  ut.SetUrl("http://localhost:8060/keypress/Home")
+  ut.SetUrl("http://localhost:8060/press/Home")
   ut.PostFromString("")
 end sub
 function Rooibos_RunNodeTests(args) as object
