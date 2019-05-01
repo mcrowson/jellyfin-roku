@@ -4,5 +4,5 @@
 	"failFast": false,
 	"showOnlyFailures": false,
 	"maxLinesWithoutSuiteDirective": 30,
-	"supportLegacyTests": true
+	"supportLegacyTests": false
 }

@@ -6,13 +6,6 @@
 # > make install
 # > make remove
 #
-# Makefile Less Common Usage:
-# > make art-opt
-# > make pkg
-# > make install_native
-# > make remove_native
-# > make tr
-#
 # By default, ZIP_EXCLUDE will exclude -x \*.pkg -x storeassets\* -x keys\* -x .\*
 # If you define ZIP_EXCLUDE in your Makefile, it will override the default setting.
 #
@@ -30,9 +23,11 @@
 # 2) Set the variable ROKU_DEV_TARGET in your environment to the IP 
 #    address of your Roku box. (e.g. export ROKU_DEV_TARGET=192.168.1.1.
 #    Set in your this variable in your shell startup (e.g. .bashrc)
+# 3) Set the variable ROKU_DEV_PASSWORD in your environment for the password
+#    associated with the rokudev account.
 ##########################################################################  
-DISTREL = ../dist
-COMMONREL ?= ../common
+DISTREL = ./out
+COMMONREL ?= ./common
 SOURCEREL = .
 
 ZIPREL = $(DISTREL)/apps
@@ -42,12 +37,6 @@ APPSOURCEDIR = source
 IMPORTFILES = $(foreach f,$(IMPORTS),$(COMMONREL)/$f.brs)
 IMPORTCLEANUP = $(foreach f,$(IMPORTS),$(APPSOURCEDIR)/$f.brs)
 
-NATIVEDEVREL  = $(DISTREL)/rootfs/Linux86_dev.OBJ/root/nvram/incoming
-NATIVEDEVPKG  = $(NATIVEDEVREL)/dev.zip
-NATIVETICKLER = $(DISTREL)/application/Linux86_dev.OBJ/root/bin/plethora  tickle-plugin-installer
-
-APPGENKEY = ./GENKEY
-APPDEVID = $(shell grep DevID $(APPGENKEY) | sed "s/DevID: //")
 GITCOMMIT = $(shell git rev-parse --short HEAD)
 BUILDDATE = $(shell date -u | awk '{ print $$2,$$3,$$6,$$4 }')
 
@@ -140,43 +129,6 @@ install: $(APPNAME) home
 	@echo "Installing $(APPNAME) to host $(ROKU_DEV_TARGET)"
 	@$(CURLCMD) --user $(USERPASS) --digest -F "mysubmit=Install" -F "archive=@$(ZIPREL)/$(APPNAME).zip" -F "passwd=" http://$(ROKU_DEV_TARGET)/plugin_install | grep "<font color" | sed "s/<font color=\"red\">//" | sed "s[</font>[["
 
-# Make certain that the Roku is packaging with the correct key/DevID
-verify-keys: $(APPGENKEY)
-	@echo "Verifying developer key is $(APPDEVID)"
-	@if [ "$(HTTPSTATUS)" == " 401" ]; \
-  then \
-		ROKU_DEV_ID=`$(CURLCMD) --user $(USERPASS) --digest http://$(ROKU_DEV_TARGET)/plugin_package | grep $(APPDEVID)`; \
-		if [ "$$ROKU_DEV_IDx" == "x" ]; then echo "ROKU_DEV_ID doesn't match $(APPDEVID)"; exit 1; fi \
-	else \
-		ROKU_DEV_ID=`$(CURLCMD) http://$(ROKU_DEV_TARGET)/plugin_package | grep $(APPDEVID)`; \
-		if [ "$$ROKU_DEV_IDx" == "x" ]; then echo "ROKU_DEV_ID doesn't match $(APPDEVID)"; exit 1; fi \
-	fi
-
-pkg: install verify-keys
-	@echo "*** Creating Package ***"
-
-	@echo "  >> creating destination directory $(PKGREL)"	
-	@if [ ! -d $(PKGREL) ]; \
-	then \
-		mkdir -p $(PKGREL); \
-	fi
-
-	@echo "  >> setting directory permissions for $(PKGREL)"
-	@if [ ! -w $(PKGREL) ]; \
-	then \
-		chmod 755 $(PKGREL); \
-	fi
-
-	@echo "Packaging  $(APPSRC)/$(APPNAME) on host $(ROKU_DEV_TARGET)"
-	@if [ "$(HTTPSTATUS)" == " 401" ]; \
-	then \
-		read -p "Password: " REPLY ; echo $$REPLY | xargs -I{} $(CURLCMD) --user $(USERPASS) --digest -Fmysubmit=Package -Fapp_name=$(APPNAME)/$(VERSION) -Fpasswd={} -Fpkg_time=`expr \`date +%s\` \* 1000` "http://$(ROKU_DEV_TARGET)/plugin_package" | grep '^<tr><td><font face="Courier"><a' | sed 's/.*href=\"\([^\"]*\)\".*/\1/' | sed 's#pkgs//##' | xargs -I{} $(CURLCMD) --user $(USERPASS) --digest -o $(PKGREL)/$(APPNAME)_$(APPDEVID)_`date +%F-%T`.pkg http://$(ROKU_DEV_TARGET)/pkgs/{} ; \
-	else \
-		read -p "Password: " REPLY ; echo $$REPLY | xargs -I{} $(CURLCMD) -Fmysubmit=Package -Fapp_name=$(APPNAME)/$(VERSION) -Fpasswd={} -Fpkg_time=`expr \`date +%s\` \* 1000` "http://$(ROKU_DEV_TARGET)/plugin_package" | grep '^<tr><td><font face="Courier"><a' | sed 's/.*href=\"\([^\"]*\)\".*/\1/' | sed 's#pkgs//##' | xargs -I{} $(CURLCMD) -o $(PKGREL)/$(APPNAME)_$(APPDEVID)_`date +%F-%T`.pkg http://$(ROKU_DEV_TARGET)/pkgs/{} ; \
-	fi
-
-	@echo "*** Package  $(APPNAME) complete ***" 
-
 remove:
 	@echo "Removing $(APPNAME) from host $(ROKU_DEV_TARGET)"
 	@if [ "$(HTTPSTATUS)" == " 401" ]; \
@@ -185,49 +137,6 @@ remove:
 	else \
 		curl -s -S -F "mysubmit=Delete" -F "archive=" -F "passwd=" http://$(ROKU_DEV_TARGET)/plugin_install | grep "<font color" | sed "s/<font color=\"red\">//" | sed "s[</font>[[" ; \
 	fi
-
-install_native: $(APPNAME)
-	@echo "Installing $(APPNAME) to native."
-	@mkdir -p $(NATIVEDEVREL)
-	@cp $(ZIPREL)/$(APPNAME).zip  $(NATIVEDEVPKG)
-	@$(NATIVETICKLER)
-
-remove_native:
-	@echo "Removing $(APPNAME) from native."
-	@rm $(NATIVEDEVPKG)
-	@$(NATIVETICKLER)
-
-APPS_JPG_ART=`\find . -name "*.jpg"`
-
-art-jpg-opt:
-	p4 edit $(APPS_JPG_ART)
-	for i in $(APPS_JPG_ART); \
-	do \
-		TMPJ=`mktemp` || return 1; \
-		echo "optimizing $$i"; \
-		(jpegtran -copy none -optimize -outfile $$TMPJ $$i && mv -f $$TMPJ $$i &); \
-	done
-	wait
-	p4 revert -a $(APPS_JPG_ART)
-
-APPS_PNG_ART=`\find . -name "*.png"`
-
-art-png-opt:
-	p4 edit $(APPS_PNG_ART)
-	for i in $(APPS_PNG_ART); \
-	do \
-		(optipng -o7 $$i &); \
-	done
-	wait
-	p4 revert -a $(APPS_PNG_ART)
-
-art-opt: art-png-opt art-jpg-opt
-
-tr:
-	p4 edit locale/.../translations.xml
-	../../rdk/rokudev/utilities/linux/bin/maketr
-	rm locale/en_US/translations.xml
-	p4 revert -a locale/.../translations.xml
 
 screenshot:
 	SCREENSHOT_TIME=`date "+%s"`; \
