@@ -16,6 +16,7 @@ function CFT_BeforeEach() as void
 end function
 
 '@Test HelloFromNode
-function CFT_HelloFromNode_simple() as void
-    m.AssertTrue(True)
+function CFT_NewElementFocus() as void
+    res = iliketrue()
+    m.AssertTrue(res)
 end function

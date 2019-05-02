@@ -7,21 +7,21 @@
 	<interface>
 		<function name="Rooibos_RunNodeTests" />
 	</interface>
-	
-	<script
-		type="text/brightscript"
-		uri="pkg:/components/config/scene.brs" />
-	
+
 	<script
 		type="text/brightscript"
 		uri="pkg:/source/tests/specs/ConfigSceneTests.brs" />
 
 	<script
 		type="text/brightscript"
-		uri="pkg:/source/tests/rooibos/rooibosFunctionMap.brs" />
+		uri="pkg:/components/config/scene.brs" />
 
 	<script
 		type="text/brightscript"
 		uri="pkg:/source/tests/rooibos/rooibosDist.brs" />
+
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/tests/rooibos/rooibosFunctionMap.brs" />
 
 </component>
