@@ -91,13 +91,11 @@ prep_staging:
 	fi; \
 	mkdir -p $(STAGINGREL); \
 	chmod -R 755 $(STAGINGREL); \
-	mkdir -p $(STAGINGREL)/source; \
-	mkdir -p $(STAGINGREL)/components; \
-	
 
 	@echo "  >> moving application to $(STAGINGREL)"
-	@cp -r $(SOURCEREL)/source/* $(STAGINGREL)/source 
-	@cp -r $(SOURCEREL)/components/* $(STAGINGREL)/components
+	@cp -r $(SOURCEREL)/source/ $(STAGINGREL)
+	@cp -r $(SOURCEREL)/components/ $(STAGINGREL)
+	@cp -r $(SOURCEREL)/images/ $(STAGINGREL)
 	@cp $(SOURCEREL)/manifest $(STAGINGREL)/manifest
 
 package:
@@ -144,11 +142,13 @@ package:
 	@echo "*** packaging $(APPNAME) complete ***"
 
 prep_tests:
-	@cp -r $(SOURCEREL)/rooibos/components_tests/* $(STAGINGREL)/components/
-	@cp -r $(SOURCEREL)/rooibos/source_tests/* $(STAGINGREL)/source/
-	rooibosC -c rooibos/.rooibosrc.json
+	@mkdir -p $(STAGINGREL)/components/tests/; \
+	mkdir -p $(STAGINGREL)/source/tests/; \
+	cp -r $(SOURCEREL)/tests/components/* $(STAGINGREL)/components/tests/;\
+	cp -r $(SOURCEREL)/tests/source/* $(STAGINGREL)/source/tests/;\
+	rooibosC -c tests/.rooibosrc.json
 	
-install: package home
+install: prep_staging package home
 	@echo "Installing $(APPNAME) to host $(ROKU_DEV_TARGET)"
 	@$(CURLCMD) --user $(USERPASS) --digest -F "mysubmit=Install" -F "archive=@$(ZIPREL)/$(APPNAME).zip" -F "passwd=" http://$(ROKU_DEV_TARGET)/plugin_install | grep "<font color" | sed "s/<font color=\"red\">//" | sed "s[</font>[["
 
