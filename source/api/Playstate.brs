@@ -1,22 +1,22 @@
-function PlaystateStart(id, params)
+function PlaystateStart(id as string, params as object) as object
   params = PlaystateDefaults(id, params)
   resp = APIRequest("Sessions/Playing")
   return postJson(resp, params)
 end function
 
-function PlaystateUpdate(id, params)
+function PlaystateUpdate(id as string, params as object) as object
   params = PlaystateDefaults(id, params)
   resp = APIRequest("Sessions/Playing/Progress")
   return postJson(resp, params)
 end function
 
-function PlaystateStop(id, params={})
+function PlaystateStop(id as string, params={} as object) as object
   params = PlaystateDefaults(id, params)
   resp = APIRequest("Sessions/Playing/Stopped")
   return postJson(resp, params)
 end function
 
-function PlaystateDefaults(id="" as string, params={} as object)
+function PlaystateDefaults(id="" as string, params={} as object) as string
   new_params = {
     '"CanSeek": false
     '"Item": "{}", ' TODO!

@@ -1,4 +1,4 @@
-function ItemImages(id="" as String)
+function ItemImages(id="" as string) as roArray
   ' This seems to cause crazy core dumps
   resp = APIRequest(Substitute("Items/{0}/Images", id))
   data = getJson(resp)
@@ -12,8 +12,13 @@ function ItemImages(id="" as String)
   return results
 end function
 
+string
+object
 
-function ImageURL(id, version="Primary", params={})
+
+function ImageURL(id as integer, 
+                  version="Primary" as string, 
+                  params={} as object) as string
   if params.count() = 0
     params =  {"maxHeight": "384", "maxWidth": "196", "quality": "90"}
   end if

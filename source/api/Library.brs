@@ -1,4 +1,4 @@
-function ItemCounts()
+function ItemCounts() as object
   ' Gets counts of a library
   ' Query:
   '   UserId: Get counts from specific user's library
@@ -8,7 +8,7 @@ function ItemCounts()
   return data
 end function
 
-function LibraryMediaFolders()
+function LibraryMediaFolders() as object
   ' Gets all user media folders
   ' Query:
   '   IsHidden: Filter by folders that are marked hidden, or not

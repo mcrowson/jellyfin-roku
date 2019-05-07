@@ -1,4 +1,4 @@
-function api_BrandingConfig()
+function api_BrandingConfig() as object
   ' Gets branding configuration
   ' {
   '  LoginDisclaimer: string

@@ -1,4 +1,4 @@
-function get_token(user as String, password as String)
+function get_token(user as string, password as string) as roSGNode
   url = "Users/AuthenticateByName?format=json"
   req = APIRequest(url)
 
@@ -14,26 +14,26 @@ function get_token(user as String, password as String)
   return userdata
 end function
 
-function AboutMe()
+function AboutMe() as object
   id = get_setting("active_user")
   url = Substitute("Users/{0}", id)
   resp = APIRequest(url)
   return getJson(resp)
 end function
 
-function SignOut()
+function SignOut() as void
   if get_setting("active_user") <> invalid
     unset_user_setting("token")
   end if
   unset_setting("active_user")
 end function
 
-function AvailableUsers()
+function AvailableUsers() as object
   users = parseJson(get_setting("available_users", "[]"))
   return users
 end function
 
-function PickUser(id as string)
+function PickUser(id as string) as void
   this_user = invalid
   for each user in AvailableUsers()
     if user.id = id then this_user = user
@@ -44,7 +44,7 @@ function PickUser(id as string)
   set_setting("port", this_user.port)
 end function
 
-function RemoveUser(id as string)
+function RemoveUser(id as string) as void
   user = CreateObject("roSGNode", "UserData")
   user.id = id
   user.callFunc("removeFromRegistry")
@@ -52,7 +52,7 @@ function RemoveUser(id as string)
   if get_setting("active_user") = id then SignOut()
 end function
 
-function ServerInfo()
+function ServerInfo() as object
   url = "System/Info/Public"
   resp = APIRequest(url)
   return getJson(resp)

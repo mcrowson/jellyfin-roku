@@ -1,4 +1,4 @@
-function VideoPlayer(id)
+function VideoPlayer(id as string) as roSGNode
   ' Get video controls and UI
   video = CreateObject("roSGNode", "Video")
   content = VideoContent(id)
@@ -16,7 +16,7 @@ function VideoPlayer(id)
   return video
 end function
 
-function VideoContent(id) as object
+function VideoContent(id) as roSGNode
   ' Get video stream
   content = createObject("RoSGNode", "ContentNode")
 

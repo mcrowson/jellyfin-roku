@@ -1,5 +1,5 @@
 ' Functions for making requests to the API
-function buildParams(params={} as Object) as string
+function buildParams(params={} as object) as string
   ' Take an object of parameters and construct the URL query 
   req = createObject("roUrlTransfer")  ' Just so we can use it for escape
 
@@ -34,8 +34,8 @@ function buildParams(params={} as Object) as string
   return param_array.join("&")
 end function
 
-function buildURL(path as String, params={} as Object) as string
-  
+function buildURL(path as string, params={} as object) as string
+  ' Creates the URL from an object of parameters
   full_url = get_base_url() + "/" + path
   if params.count() > 0
     full_url = full_url + "?" + buildParams(params)
@@ -44,7 +44,8 @@ function buildURL(path as String, params={} as Object) as string
   return full_url
 end function
 
-function APIRequest(url as String, params={} as Object)
+function APIRequest(url as string, params={} as object) as roUrlTransfer
+  ' Build API request
   req = createObject("roUrlTransfer")
 
   if server_is_https() then
@@ -60,7 +61,7 @@ function APIRequest(url as String, params={} as Object)
   return req
 end function
 
-function getJson(req)
+function getJson(req as object) as dynamic
   'req.retainBodyOnError(True)
   'print req.GetToString()
   data = req.GetToString()
@@ -71,7 +72,8 @@ function getJson(req)
   return json
 end function
 
-function postVoid(req, data="" as string)
+function postVoid(req as object, data="" as string) as boolean
+  ' Make a POST request
   status = req.PostFromString(data)
   if status = 200
     return true
@@ -80,7 +82,8 @@ function postVoid(req, data="" as string)
   end if
 end function
 
-function postJson(req, data="" as string)
+function postJson(req as object, data="" as string) as dynamic
+  ' Returns JSON body of post request or invalid
   req.setMessagePort(CreateObject("roMessagePort"))
   req.AsyncPostFromString(data)
 
@@ -98,7 +101,8 @@ function postJson(req, data="" as string)
   return json
 end function
 
-function get_base_url()
+function get_base_url() as string
+  ' Get the base URL of the Jellyfin server
   base = get_setting("server")
   port = get_setting("port")
 
@@ -122,7 +126,8 @@ function get_base_url()
   return base
 end function
 
-function server_is_https() as Boolean
+function server_is_https() as boolean
+  ' Returns true if server uses https protocol
   server = get_setting("server")
   port = get_setting("port")
 
@@ -145,7 +150,7 @@ function server_is_https() as Boolean
   return False
 end function
 
-function authorize_request(request)
+function authorize_request(request as roUrlTransfer) as roUrlTransfer
   ' TODO - get proper version and device ID from manifest
   devinfo = CreateObject("roDeviceInfo")
 

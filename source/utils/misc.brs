@@ -1,10 +1,10 @@
 ' "Q" stands for "Question mark" since nodeEvent? wasn't acceptable
 ' Probably needs a better name, but unique for now
-function nodeEventQ(msg, field as string) as boolean
+function nodeEventQ(msg as string, field as string) as boolean
   return type(msg) = "roSGNodeEvent" and msg.getField() = field
 end function
 
-function getMsgRowTarget(msg, subnode="" as string) as object
+function getMsgRowTarget(msg as string, subnode="" as string) as object
   node = msg.getRoSGNode()
   ' Subnode allows for handling alias messages
   if subnode <> ""
@@ -15,8 +15,9 @@ function getMsgRowTarget(msg, subnode="" as string) as object
   return target
 end function
 
-sub themeScene(scene)
+sub themeScene(scene as Scene)
   ' Takes a scene and applies a consisten UI Theme
+  ' Scene API https://sdkdocs.roku.com/display/sdkdoc/Scene 
   dimensions = scene.currentDesignResolution
   scene.backgroundColor = "#101010"
   scene.backgroundURI = ""
@@ -53,7 +54,7 @@ function leftPad(base as string, fill as string, length as integer) as string
   return base
 end function
 
-function make_dialog(message="" as string)
+function make_dialog(message="" as string) as string
   ' Takes a string and returns an object for dialog popup
   dialog = createObject("roSGNode", "Dialog")
   dialog.id = "popup"

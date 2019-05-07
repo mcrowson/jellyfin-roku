@@ -207,7 +207,7 @@ sub ShowLibrarySelect()
   end while
 end sub
 
-sub ShowMovieOptions(library)
+sub ShowMovieOptions(library as roSGNode)
   ' Movie list page
   port = CreateObject("roMessagePort")
   screen = CreateObject("roSGScreen")
@@ -311,7 +311,7 @@ sub ShowMovieOptions(library)
   end while
 end sub
 
-sub ShowMovieDetails(movie)
+sub ShowMovieDetails(movie as object)
   ' Movie detail page
   port = CreateObject("roMessagePort")
   screen = CreateObject("roSGScreen")
@@ -359,7 +359,7 @@ sub ShowMovieDetails(movie)
   end while
 end sub
 
-sub ShowTVShowOptions(library)
+sub ShowTVShowOptions(library as roSGNode)
   ' TV Show List Page
   port = CreateObject("roMessagePort")
   screen = CreateObject("roSGScreen")
@@ -460,7 +460,7 @@ sub ShowTVShowOptions(library)
   end while
 end sub
 
-sub ShowTVShowDetails(series)
+sub ShowTVShowDetails(series as object)
   ' TV Show Detail Page
   port = CreateObject("roMessagePort")
   screen = CreateObject("roSGScreen")
@@ -494,7 +494,7 @@ sub ShowTVShowDetails(series)
       season_list = msg.getRoSGNode()
       item = msg.getData()
       season = season_list.content.getChild(item[0]).getChild(item[1])
-
+      print season
       ShowTVSeasonEpisodes(series, season)
     else
       print msg
@@ -503,7 +503,7 @@ sub ShowTVShowDetails(series)
   end while
 end sub
 
-sub ShowTVSeasonEpisodes(series, season)
+sub ShowTVSeasonEpisodes(series, season as roSGNode)
   ' TV Show Season Episdoe List
   port = CreateObject("roMessagePort")
   screen = CreateObject("roSGScreen")
@@ -537,7 +537,7 @@ sub ShowTVSeasonEpisodes(series, season)
   end while
 end sub
 
-sub ShowCollections(library)
+sub ShowCollections(library as roSGNode)
   ' Load Movie Collection Items
   port = CreateObject("roMessagePort")
   screen = CreateObject("roSGScreen")
@@ -639,7 +639,7 @@ sub ShowCollections(library)
   end while
 end sub
 
-sub ShowSearchOptions(query)
+sub ShowSearchOptions(query as string)
   ' Search Results Page
   port = CreateObject("roMessagePort")
   screen = CreateObject("roSGScreen")
@@ -678,7 +678,7 @@ sub ShowSearchOptions(query)
   end while
 end sub
 
-sub showVideoPlayer(video_id)
+sub showVideoPlayer(video_id as string)
   ' Video is Playing
   port = CreateObject("roMessagePort")
   screen = CreateObject("roSGScreen")
